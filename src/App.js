@@ -1,5 +1,7 @@
 import React from "react";
 import Lists from "./List";
+import CreateList from "./components/CreateList"; 
+
 
 class App extends React.Component {
     constructor(props) {
@@ -25,8 +27,46 @@ class App extends React.Component {
         })
         .catch(console.log);
     };
+
+    createPost = (postData) => {
+      fetch('http://localhost:5001/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      })
+      .then(response => response.json())
+      .then(() => this.getLists())  // Refresh list after creating
+      .catch(error => console.error('Error creating post:', error));
+    };
+
+    updatePost = (postData, id) => {
+      fetch(`http://localhost:5001/posts/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      })
+      .then(response => response.json())
+      .then(() => this.getLists())  // Refresh list after updating
+      .catch(error => console.error('Error updating post:', error));
+    };
+
+    deletePost = (id) => {
+      fetch(`http://localhost:5001/posts/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(() => this.getLists())  // Refresh list after deleting
+      .catch(error => console.error('Error deleting post:', error));
+    };
+
+
     render() {
-      const listTable = this.state.loading ? (<span>Loading data...</span>) : (<Lists alldata={this.state.alldata} />);
+      const { loading, alldata } = this.state;
+      const listTable = loading ? (<span>Loading data...</span>) : (<Lists  alldata={alldata} updatePost={this.updatePost} deletePost={this.deletePost} getLists={this.getLists}/>);
       return (
           <div className="container">
               <span className="title-bar">
@@ -37,12 +77,16 @@ class App extends React.Component {
                   >
                       Get Lists
                   </button>
+            <CreateList createPost={this.createPost} /> 
               </span>
               {listTable}
+              
           </div>
       );
   }
   
-  }
+   }
 
 export default App;
+
+
